@@ -8,12 +8,12 @@ function wcd {
 
   # Help text
   if [ "$location" = "" ]; then
-    printf '%s\n' "cd with Windows paths/drives" "Usage: cdm [<drive_letter>:\]<location>"
+    printf '%s\n' "cd with Windows paths/drives" "Usage: cdm [<drive_letter>:<slash>]<location>" "<slash> may be forward slash or backslash"
     return 0
   fi
 
   # Translate drive letter
-  if [[ "$(printf '%s' "$location" | head -c 2)" =~ [A-Z]: ]]; then
+  if [[ "${location:0:2}" =~ [A-Z]: ]]  && [[ "${location:2:3}" =~ [/\\] ]]; then
     drive_letter="${location:0:1}"
     # upper->lower from: https://stackoverflow.com/a/12487465
     mount_point="$wcd__mount_dir/$(tr '[:upper:]' '[:lower:]' <<< $drive_letter)"
@@ -34,7 +34,7 @@ function wcd {
     # If drive not mounted (ie. if empty).
     if [ "$(findmnt --source "$drive_letter:\\")" = "" ]; then
       printf '%s\n' "Mounting $drive_letter: drive ..."
-      sudo mount -t drvfs "$drive_letter:" "$mount_point"
+      sudo mount -t drvfs "$drive_letter:\\" "$mount_point"
 
       if [ "$(findmnt --source "$drive_letter:\\")" = "" ]; then
         printf 'Error %s\n' "$drive_letter: mount failed"
